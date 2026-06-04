@@ -1,1 +1,1 @@
-Building GPT-128M from scratch
+Building GPT-124M from scratch
