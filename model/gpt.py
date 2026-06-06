@@ -18,12 +18,23 @@ class GPT_124(nn.Module):
         super().__init__()
         self.token_emd=nn.Embedding(cfg["vocab_size"],cfg["emb_dim"])
         self.pos_emb=nn.Embedding(cfg["context_length"],cfg["emb_dim"])
-        self.drop_out=torch.dropout(cfg["drop_rate"])
+        self.drop_out=nn.Dropout(cfg["drop_rate"])
         self.trf=nn.Sequential(
             *[Transformer(cfg) for _ in range(cfg["n_layers"])]
         )
         self.Layer_norm=LayerNormalization(cfg["emb_dim"])
         self.output_head=nn.Linear(cfg["emb_dim"],cfg["vocab_size"],bias=False)
         
-    def forward(self,x):
-        pass    
+    def forward(self,input_ids): ## takes tokens as input
+        batch_size,seq_length=input_ids.shape
+        tok_embd=self.token_emd(input_ids)
+        pos_embd=self.pos_emb(torch.arange(seq_length,device=input_ids.device))
+        x=tok_embd+pos_embd
+        x=self.drop_out(x)
+        x=self.trf(x)
+        x=self.Layer_norm(x)
+        out=self.output_head(x)
+        return out
+
+
+        
